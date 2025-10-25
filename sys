@@ -48,6 +48,8 @@ function sys::is_mingw() {
     [[ "$(sys::get_os_type)" == "MinGw" ]]
 }
 
+## CPU Architecture Detection, because why not.
+## yes, this is useful for scripts that need to know the architecture. or in case you're doing LFS.
 function sys::get_cpu_arch() {
     local cpu_arch
     cpu_arch="$(uname -m)"
@@ -73,6 +75,8 @@ function sys::is_arm() {
     [[ "$(sys::get_cpu_arch)" == "arm" ]]
 }
 
+
+## in case you want to know the shell type. here you have it!... i bet is bash.
 function sys::get_shell_type() {
     local shell_path shell_name
     shell_path="${SHELL:-$(ps -p $$ -o comm=)}"
@@ -80,6 +84,7 @@ function sys::get_shell_type() {
     echo "${shell_name}"
 }
 
+## so you can brag about your ram size. why would you need to do that?... i dunno, but here it is.
 function sys::ramSize () {
     if sys::is_macos; then
         sysctl -n hw.memsize
@@ -90,6 +95,7 @@ function sys::ramSize () {
     fi
 }
 
+## can you read bytes? no? here, neither can i so, let's convert it to GB, mb or whatever..
 function sys::translateRamSize () {
     local ram_bytes ram_gb
     ram_bytes="$(sys::ramSize)"
@@ -97,15 +103,48 @@ function sys::translateRamSize () {
         echo "Unknown"
         return
     fi
+    ram_kb=$((ram_bytes / 1024))
+    ram_mb=$((ram_bytes / 1024 / 1024))
     ram_gb=$((ram_bytes / 1024 / 1024 / 1024))
-    echo "${ram_gb} GB"
+    if [[ "${ram_gb}" -ge 1 ]]; then
+        ram_gb="${ram_gb} GB"
+    elif [[ "${ram_mb}" -ge 1 ]]; then
+        ram_gb="${ram_mb} MB"
+    else
+        ram_gb="${ram_kb} KB"
+    fi
+    echo "${ram_gb}"
 }
 
+## Main function to display all info, duh.
 function main () {
-    echo "Operating System: $(sys::get_os_type)"
-    echo "CPU Architecture: $(sys::get_cpu_arch)"
-    echo "RAM Size: $(sys::translateRamSize)"
-    echo "Shell Type: $(sys::get_shell_type)"
+    case "$1" in
+        -h|--help)
+            echo "Usage: sys"
+            echo "Displays basic system information."
+            exit 0
+            ;;
+        -r|--ram)
+            echo "RAM Size: $(sys::translateRamSize)"
+            ;;
+        -s|--shell)
+            echo "Shell: $(sys::get_shell_type)"
+            ;;
+        -o|--os)
+            echo "Operating System: $(sys::get_os_type)"
+            ;;
+        -c|--cpu)
+            echo "CPU Architecture: $(sys::get_cpu_arch)"
+            ;;
+        *)
+            echo """
+        Operating System: $(sys::get_os_type)
+        CPU Architecture: $(sys::get_cpu_arch)
+        RAM Size: $(sys::translateRamSize)
+        Shell: $(sys::get_shell_type)
+            """
+    ;;
+    esac
 }
 
 main "$@"
