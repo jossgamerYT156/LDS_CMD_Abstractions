@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+## Simply build all components using all available CPU cores and log output to build.log 
+## while showing it to you after clearing the screen.
+
+## yes, i am this lazy, this requires `make` and a `makefile` to be useful, if not?... 
+## nothing will happen, genius.
+## Usage: buildall
+## yes, that is it. just run it.
+## also, don't forget to chmod +x buildall and add it to your PATH if needed by using `export PATH="$PATH:path/to/this/script"`
+## this will append to your current path.
+## YES, append it, don't replace your current path if you don't wanna go through the hassle of fixing
+## your environment.
+## anyways, enjoy!
+
+MAKE=$(which make)
+
+clear && $MAKE -j$(nproc) > | tee build.log 2>&1

@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# ginit - Simplified Git repo initializer
+## how does this work? read ahead, airhead.
+## This script initializes a Git repository in a specified directory
+## with options to customize the initialization process.
+## You can specify the starting directory, use a custom template,
+## choose to create a bare repository, and optionally add a README.md file.
+## Usage: not gonna repat myself, read ahead or run ginit -h.
+## also, don't forget to chmod +x ginit and add it to your PATH if needed by using 
+## `export PATH="$PATH:path/to/this/script"`
+## or not, your call.
+## LDS LLC (c) 2025, do whatever you want with it, under MIT license and all that jazz.
+## who reads these anyways?
+## enjoy my suffering.
+set -e
+
+function usage() { ## Display usage information, duh.
+    cat <<EOF
+    --- LDS Git Initializer Script ---
+Usage: ginit [options]
+
+Initialize a Git repository with extra utilities.
+
+Options:
+  -h, --help                   Show this help message and exit
+  -i, --start-dir <path>       Specify the directory to initialize (default: current directory)
+  -t, --template <dir>         Use a custom template directory
+  -b, --bare                   Initialize a bare repository
+  -a, --add-README             Add a README.md file if it doesn't exist
+  -n, --no-README              Prevent adding README.md (overrides -a)
+  -m, --message <text>         Write initial README.md content with given message
+  -d, --debug                  Print internal debug info
+EOF
+}
+
+# Defaults
+## sadly, thanks to some users, we need to have sane defaults.
+## who would have thought?
+## anyways, here they are.
+START_DIR="."
+TEMPLATE_DIR=""
+BARE=false ## Initialize as a bare repository, of course false by default.
+ADD_README=false ## Whether to add README.md... false by default.
+NO_README=false ## Whether to prevent adding README.md... false by default.
+README_MSG="" ## Custom message for README.md... empty by default.
+DEBUG=false ## Debug mode off by default. of course.
+
+
+## cases and stuff...
+## someone might want to pass multiple args, so we need to loop through them.
+## who reads these?
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage; exit 0 ;;
+        -i|--start-dir)
+            START_DIR="$2"; shift 2 ;;
+        -t|--template)
+            TEMPLATE_DIR="$2"; shift 2 ;;
+        -b|--bare)
+            BARE=true; shift ;;
+        -a|--add-README)
+            ADD_README=true; shift ;;
+        -n|--no-README)
+            NO_README=true; shift ;;
+        -m|--message)
+            README_MSG="$2"; shift 2 ;;
+        -d|--debug)
+            DEBUG=true; shift ;;
+        *)
+            echo "Unknown option: $1"; usage; exit 1 ;;
+    esac
+done
+
+[[ "$DEBUG" == true ]] && echo "DEBUG:
+  START_DIR=$START_DIR
+  TEMPLATE_DIR=$TEMPLATE_DIR
+  BARE=$BARE
+  ADD_README=$ADD_README
+  NO_README=$NO_README
+  README_MSG=$README_MSG
+"
+
+# Build git init args, we kinda need to do this.... i guess?.
+INIT_ARGS=()
+$BARE && INIT_ARGS+=("--bare")
+[[ -n "$TEMPLATE_DIR" ]] && INIT_ARGS+=("--template" "$TEMPLATE_DIR")
+
+# Ensure directory exists, duh. we can't init in a non-existing dir.
+mkdir -p "$START_DIR"
+
+# Initialize repo, obviously. that's the whole point of this script.
+git -C "$START_DIR" init "${INIT_ARGS[@]}"
+
+# Handle README.md, if needed.
+if [[ "$NO_README" == false ]]; then
+    if [[ "$ADD_README" == true || ! -f "$START_DIR/README.md" ]]; then
+        echo "${README_MSG:-# $(basename "$START_DIR")}" > "$START_DIR/README.md"
+        echo "Created README.md"
+    fi
+fi
+
+## and tell the user where the repo was initialized, in case they forgot.
+## really, who would forget what path they friggin wrote!!?
+echo "Initialized Git repository at: $START_DIR"
+
+## anyways, done, finito, happy? you have a nice day now.
+## no, seriously, go have a coffee or something.
+## stop reading these comments, they are pointless.
+## really, i wrote these just to waste your time... stop, go do something, touch some grass or something.
+## alright, i'm done now, bye.
+## :)

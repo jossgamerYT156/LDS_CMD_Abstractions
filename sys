@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+## Why not neofetch or screenfetch?
+## Because those are overkill for what I need.
+## This is a simple system information script that provides
+## basic details about the operating system, CPU architecture,
+## RAM size, and shell type.
+## yes, just that.
+## why? because it uses less than 15 mb of ram while neofetch uses way more.
+## and this is monolithic, no dependencies except bash and having a basic knowledge of "how to run a script in cmd"
+##
+## Usage: sys
+## that's it, just run it.
+## also, don't forget to chmod +x sys and add it to your PATH if needed by using `export PATH="$PATH:path/to/this/script"`
+## this will append to your current path.
+
+## if you want to replace your current path, use `export PATH="path/to/this/script"` instead.
+## then, good luck fixing your environment if something breaks. einstein.
+## anyways, enjoy!
+## and don't blame me if this doesn't exist in your path because you forgot to add it. duh.
+## anyways, under MIT license and blah blah blah, do whatever you want with it.
+## LDS LLC (c) 2025 and all that crap.
+## enjoy it, or not, I don't care.
+
+function sys::get_os_type() {
+    local os_type
+    os_type="$(uname -s)"
+    case "${os_type}" in
+        Linux*)     echo "Linux" ;;
+        Darwin*)    echo "MacOS" ;;
+        CYGWIN*)    echo "Cygwin" ;;
+        MINGW*)     echo "MinGw" ;;
+        *)          echo "Unknown" ;;
+    esac
+}
+
+function sys::is_linux() {
+    [[ "$(sys::get_os_type)" == "Linux" ]]
+}
+function sys::is_macos() {
+    [[ "$(sys::get_os_type)" == "MacOS" ]]
+}
+function sys::is_cygwin() {
+    [[ "$(sys::get_os_type)" == "Cygwin" ]]
+}
+
+function sys::is_mingw() {
+    [[ "$(sys::get_os_type)" == "MinGw" ]]
+}
+
+function sys::get_cpu_arch() {
+    local cpu_arch
+    cpu_arch="$(uname -m)"
+    case "${cpu_arch}" in
+        x86_64*)    echo "x86_64" ;;
+        i386*)      echo "i386" ;;
+        armv8*|aarch64*) echo "arm64" ;;
+        armv7*|armv6*)   echo "arm" ;;
+        *)          echo "Unknown" ;;
+    esac
+}
+
+function sys::is_x86_64() {
+    [[ "$(sys::get_cpu_arch)" == "x86_64" ]]
+}
+function sys::is_i386() {
+    [[ "$(sys::get_cpu_arch)" == "i386" ]]
+}
+function sys::is_arm64() {
+    [[ "$(sys::get_cpu_arch)" == "arm64" ]]
+}
+function sys::is_arm() {
+    [[ "$(sys::get_cpu_arch)" == "arm" ]]
+}
+
+function sys::get_shell_type() {
+    local shell_path shell_name
+    shell_path="${SHELL:-$(ps -p $$ -o comm=)}"
+    shell_name="$(basename "${shell_path}")"
+    echo "${shell_name}"
+}
+
+function sys::ramSize () {
+    if sys::is_macos; then
+        sysctl -n hw.memsize
+    elif sys::is_linux; then
+        awk '/MemTotal/ {print $2 * 1024}' /proc/meminfo
+    else
+        echo "0"
+    fi
+}
+
+function sys::translateRamSize () {
+    local ram_bytes ram_gb
+    ram_bytes="$(sys::ramSize)"
+    if [[ "${ram_bytes}" -eq 0 ]]; then
+        echo "Unknown"
+        return
+    fi
+    ram_gb=$((ram_bytes / 1024 / 1024 / 1024))
+    echo "${ram_gb} GB"
+}
+
+function main () {
+    echo "Operating System: $(sys::get_os_type)"
+    echo "CPU Architecture: $(sys::get_cpu_arch)"
+    echo "RAM Size: $(sys::translateRamSize)"
+    echo "Shell Type: $(sys::get_shell_type)"
+}
+
+main "$@"
