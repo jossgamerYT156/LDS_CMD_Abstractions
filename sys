@@ -30,7 +30,7 @@ function sys::get_os_type() {
         Darwin*)    echo "MacOS" ;;
         CYGWIN*)    echo "Cygwin" ;;
         MINGW*)     echo "MinGw" ;;
-        *)          echo "Unknown" ;;
+        *)          echo "Man, IDK, Custom maybe?" ;;
     esac
 }
 
